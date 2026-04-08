@@ -52,6 +52,7 @@ class BugsBuddyEnv(EnvClient[BugsBuddyAction, BugsBuddyObservation, BugsBuddySta
             available_files=obs_data.get("available_files", []),
             steps_remaining=obs_data.get("steps_remaining", 20),
             action_history=obs_data.get("action_history", []),
+            grader_score=obs_data.get("grader_score"),
         )
 
         return StepResult(

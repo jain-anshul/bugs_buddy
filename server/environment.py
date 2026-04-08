@@ -125,6 +125,7 @@ class BugsBuddyEnvironment(Environment):
         reward = 0.0
         tool_success = True
         done = False
+        grader_score = None
 
         try:
             if tool == ToolName.read_file:
@@ -144,7 +145,7 @@ class BugsBuddyEnvironment(Environment):
                 reward += step_reward
 
             elif tool == ToolName.submit_root_cause:
-                tool_output, step_reward, done = self._handle_submit_root_cause(args)
+                tool_output, step_reward, done, grader_score = self._handle_submit_root_cause(args)
                 reward += step_reward
 
             else:
@@ -165,9 +166,6 @@ class BugsBuddyEnvironment(Environment):
 
         # Update action history
         summary = self._action_summary(tool, args)
-        history = list(self._state.current_hypothesis and
-                       [f"hyp: {self._state.current_hypothesis[:60]}"] or [])
-        # Re-derive full history from state (we store it in state for simplicity)
         if not hasattr(self._state, "_action_history_list"):
             object.__setattr__(self._state, "_action_history_list", [])
         self._state._action_history_list.append(summary)
@@ -188,6 +186,7 @@ class BugsBuddyEnvironment(Environment):
             available_files=list(self._task.files.keys()),
             steps_remaining=max(0, steps_remaining),
             action_history=action_history,
+            grader_score=grader_score,
         )
 
     @property
@@ -287,7 +286,7 @@ class BugsBuddyEnvironment(Environment):
 
         return f"Function '{function_name}' not found in any file.", 0.0
 
-    def _handle_submit_root_cause(self, args: dict) -> tuple[str, float, bool]:
+    def _handle_submit_root_cause(self, args: dict) -> tuple[str, float, bool, float]:
         filename = args.get("filename", "").strip()
         line_str = args.get("line", "").strip()
         explanation = args.get("explanation", "").strip()
@@ -297,12 +296,13 @@ class BugsBuddyEnvironment(Environment):
                 "Error: submit_root_cause requires 'filename', 'line', and 'explanation'.",
                 -0.05,
                 False,
+                0.0,
             )
 
         try:
             line = int(line_str)
         except ValueError:
-            return f"Error: 'line' must be an integer, got '{line_str}'.", -0.05, False
+            return f"Error: 'line' must be an integer, got '{line_str}'.", -0.05, False, 0.0
 
         self._state.current_hypothesis = explanation
 
@@ -323,7 +323,7 @@ class BugsBuddyEnvironment(Environment):
             f"Terminal reward: {terminal_reward:.4f}"
         )
 
-        return feedback, terminal_reward, True
+        return feedback, terminal_reward, True, raw_score
 
     # ------------------------------------------------------------------
     # Helpers

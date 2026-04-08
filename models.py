@@ -62,6 +62,7 @@ class BugsBuddyObservation(Observation):
     available_files: List[str] = Field(default_factory=list, description="All filenames in the bundled codebase")
     steps_remaining: int = Field(default=20, description="Steps remaining before forced termination")
     action_history: List[str] = Field(default_factory=list, description="Short summary of each prior action")
+    grader_score: Optional[float] = Field(default=None, description="Raw grader score [0,1] set only on submit_root_cause; None for all other steps")
 
 
 class BugsBuddyState(State):

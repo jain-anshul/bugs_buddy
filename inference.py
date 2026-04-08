@@ -40,6 +40,12 @@ TEMPERATURE = 0.3
 MAX_TOKENS = 1024
 SUCCESS_SCORE_THRESHOLD = 0.5
 
+# Theoretical maximum total reward:
+#   step bonuses (relevant reads ×2: 0.10, inspect: 0.10, tests: 0.05, search: 0.05) = 0.30
+#   terminal reward (grader=1.0 × efficiency=0.85 at step 6) = 0.85
+# Total = 1.15 — score = sum(rewards) / MAX_TOTAL_REWARD is naturally in (0, 1)
+MAX_TOTAL_REWARD = 1.15
+
 TASKS = ["task_easy", "task_medium", "task_hard"]
 BENCHMARK = "bugs_buddy"
 
@@ -253,12 +259,15 @@ async def main() -> None:
                 conversation.append({"role": "user", "content": build_user_message(obs_dict, step=step + 1)})
 
                 if done:
-                    m = re.search(r"Grader score:\s*([\d.]+)", obs_dict.get("tool_output", ""))
-                    if m:
-                        grader_score = float(m.group(1))
+                    if obs_dict.get("grader_score") is not None:
+                        grader_score = obs_dict["grader_score"]
                     break
 
-            score = min(max(sum(rewards), 0.0), 1.0)
+            # Normalize by the theoretical maximum so score reflects both
+            # investigative behaviour (step bonuses) and answer quality
+            # (terminal reward). Floor at a small epsilon to handle pathological
+            # cases where penalties push sum(rewards) to 0 or negative.
+            score = max(sum(rewards) / MAX_TOTAL_REWARD, 1e-4)
             success = grader_score >= SUCCESS_SCORE_THRESHOLD
 
         finally:
