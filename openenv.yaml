@@ -1,0 +1,21 @@
+spec_version: 1
+name: bugs_buddy
+version: "0.2.0"
+description: >
+  RL environment for autonomous bug root cause analysis. The agent receives
+  a bug report and access to a small, self-contained Python codebase. It must
+  take a sequence of investigative actions — read_file, search_code, run_tests,
+  inspect_function — to identify the precise root cause, then submit its
+  hypothesis via submit_root_cause.
+author: engineering
+tags:
+  - software-engineering
+  - debugging
+  - code-analysis
+  - llm-training
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
+max_steps: 20
+supports_concurrent_sessions: true
