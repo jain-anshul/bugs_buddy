@@ -1,7 +1,7 @@
 """
 Task Hard: Off-by-One in Pagination Utility Causing Data Loss on Last Page
 ---------------------------------------------------------------------------
-Difficulty: Hard | 4 files | ~220 lines | Expected steps: 10-18
+Difficulty: Hard | 4 files | ~220 lines | Expected steps: 4-6
 
 The bug spans paginator.py and data_loader.py. get_page() passes the batch
 size (always == page_size) to the boundary guard instead of the total record
@@ -74,7 +74,7 @@ def get_page(records, page, page_size, total_record_count=None):
         list: Records for the requested page, or [] if page is out of range.
     """
     count = total_record_count if total_record_count is not None else len(records)
-    if page < 1 or page > total_pages(records, page_size):  # BUG: should use count not records
+    if page < 1 or page > total_pages(records, page_size):
         return []
     start = (page - 1) * page_size
     end = start + page_size
@@ -149,8 +149,6 @@ def fetch_batch(page, page_size, total_count, filters=None):
         from .paginator import get_page
     except ImportError:
         from paginator import get_page
-    # BUG TRIGGER: get_page is called with batch as records and no total_record_count,
-    # so the boundary guard uses len(batch) instead of total_count.
     return get_page(batch, 1, page_size)
 '''
 
@@ -288,14 +286,12 @@ TASK_HARD = TaskDefinition(
     difficulty="hard",
     bug_report_title="Last page of paginated results always returns empty list",
     bug_report_description=(
-        "The last page of paginated results is always missing when pagination "
-        "is driven through fetch_batch(). When a dataset has N records and "
-        "page size is P, requesting page ceil(N/P) via fetch_batch() returns "
-        "an empty list instead of the remaining records. All earlier pages "
-        "return correctly. The bug is observed across all API endpoints that "
-        "use fetch_batch() for pagination. Direct calls to get_page() with a "
-        "full record list work correctly. No exception is raised — the last "
-        "page silently returns []."
+        "The last page of paginated API results always returns an empty list "
+        "instead of the remaining records. All earlier pages return correctly. "
+        "When a dataset has N records and page size is P, requesting page "
+        "ceil(N/P) returns [] silently — no exception is raised. The issue "
+        "affects all API endpoints that use the pagination layer. Earlier "
+        "pages are unaffected."
     ),
     bug_report_stack_trace=None,
     files={

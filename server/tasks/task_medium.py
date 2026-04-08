@@ -1,7 +1,7 @@
 """
 Task Medium: Silent Wrong Result from Incorrect Operator Precedence
 --------------------------------------------------------------------
-Difficulty: Medium | 3 files | ~150 lines | Expected steps: 6-12
+Difficulty: Medium | 3 files | ~150 lines | Expected steps: 3-5
 
 The bug is in compare_groups() in aggregator.py: the expression
 `mean_a / mean_b * 100` is evaluated as `mean_a / (mean_b * 100)` due to
@@ -117,7 +117,7 @@ def compare_groups(data_a, data_b):
     mean_b = mean(data_b)
     if mean_b == 0:
         raise ZeroDivisionError("Group B mean is zero; cannot compute ratio")
-    return mean_a / mean_b * 100  # BUG: evaluated as mean_a / (mean_b * 100)
+    return mean_a / (mean_b * 100)
 
 
 def top_n(values, n=3):
@@ -191,10 +191,6 @@ test_bottom_n ... ok
 Ran 9 tests in 0.002s
 
 OK
-
-NOTE: No direct test for compare_groups() exists.
-      The function is called by downstream dashboard code.
-      All unit tests pass despite the bug.
 """
 
 TASK_MEDIUM = TaskDefinition(
@@ -202,14 +198,14 @@ TASK_MEDIUM = TaskDefinition(
     difficulty="medium",
     bug_report_title="compare_groups() returns ratios that are 100x too small",
     bug_report_description=(
-        "compare_groups() in aggregator.py returns incorrect comparison ratios "
-        "for all datasets. No exception is raised and no test currently covers "
-        "this function directly. The bug was discovered when a downstream "
-        "dashboard showed all group ratios as approximately 0.01x instead of "
-        "the expected ~1.0x (i.e. 100%). For two groups with equal means, "
-        "compare_groups() should return 100.0, but it returns 1.0. The error "
-        "appears to be in the calculation logic of compare_groups(), not in "
-        "mean() or the formatting layer."
+        "A downstream dashboard started showing all group comparison ratios as "
+        "approximately 0.01x instead of the expected ~1.0x (i.e. 100%). For "
+        "two groups with equal means, the ratio should be 100.0, but the "
+        "dashboard displays 1.0. No exception is raised and all unit tests "
+        "pass. The error is consistently exactly 100x smaller than expected "
+        "regardless of input values — it is not a rounding or edge-case issue. "
+        "The bug is in the arithmetic formula of one of the analytics "
+        "functions, not in the statistical computations or formatting layer."
     ),
     bug_report_stack_trace=None,
     files={

@@ -101,8 +101,9 @@ def grade_hard(filename: str, line: int, explanation: str, ground_truth: "Ground
     if "data_loader" in lower or "fetch_batch" in lower:
         score += 0.15
 
-    # Correct function mention
-    if "get_page" in lower or "total_pages" in lower:
+    # Correct function mention — only rewarded when the correct file is identified,
+    # since get_page/total_pages live in paginator.py
+    if filename == ground_truth.filename and ("get_page" in lower or "total_pages" in lower):
         score += 0.15
 
     hits = _keyword_hits(explanation, ground_truth.keywords)

@@ -67,7 +67,7 @@ def apply_discount(price, discount_amount):
 def get_final_price(price, discount_percent):
     """Get the final price after applying a percentage discount."""
     discount_amount = calculate_discount(price, discount_percent)
-    return price + discount_amount  # BUG: + should be -
+    return price + discount_amount
 
 
 def format_price(price, currency=DEFAULT_CURRENCY):
@@ -129,6 +129,6 @@ TASK_EASY = TaskDefinition(
         line=32,
         buggy_function="get_final_price",
         relevant_files=["store/pricing.py"],
-        keywords=["addition", "subtraction", "plus", "minus", "discount", "wrong operator", "+ should be -"],
+        keywords=["addition", "subtraction", "subtract", "plus", "minus", "discount", "operator", "wrong operator", "+ should be -"],
     ),
 )

@@ -210,7 +210,8 @@ class BugsBuddyEnvironment(Environment):
         # Repeat read penalty
         if filename in self._state.files_read:
             content = self._task.files[filename]
-            return content, -0.05
+            numbered = "\n".join(f"{i+1:4}: {line}" for i, line in enumerate(content.splitlines()))
+            return numbered, -0.05
 
         self._state.files_read.append(filename)
 
@@ -222,7 +223,9 @@ class BugsBuddyEnvironment(Environment):
                 self._rewarded_files.add(filename)
                 reward += 0.05
 
-        return self._task.files[filename], reward
+        content = self._task.files[filename]
+        numbered = "\n".join(f"{i+1:4}: {line}" for i, line in enumerate(content.splitlines()))
+        return numbered, reward
 
     def _handle_search_code(self, args: dict) -> tuple[str, float]:
         query = args.get("query", "").strip()
